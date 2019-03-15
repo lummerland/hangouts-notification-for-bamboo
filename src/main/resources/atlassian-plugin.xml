@@ -10,8 +10,10 @@
     <!-- add our i18n resource -->
     <resource type="i18n" name="i18n" location="hangouts-notification"/>
     
-    <notificationRecipient key="hangouts.recipients" name="Hangouts Recipient" class="org.lummerland.bamboo.hangoutsNotifications.HangoutsNotificationRecipient" weight="10">
+    <notificationRecipient key="recipients.hangouts" name="Hangouts Recipient" class="org.lummerland.bamboo.hangoutsNotifications.HangoutsNotificationRecipient" weight="10">
         <description>Hangouts</description>
+        <resource type="freemarker" name="edit" location="/templates/editNotification.ftl"/>
+        <resource type="freemarker" name="view" location="/templates/viewNotification.ftl"/>
     </notificationRecipient>
 
 </atlassian-plugin>
