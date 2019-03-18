@@ -2,9 +2,13 @@
 
 Let Bamboo send your build results to your Google Hangouts Chat.
 
-Just add a webhook to the Google Hangouts room where you want to see built result messages. Copy the URL, add a new notification to your build plan in Bamboo, choose "Hangouts" as notification type and add the webhook URL there. 
+Just add a webhook to the Google Hangouts room where you want to see built result messages as described here:
+https://developers.google.com/hangouts/chat/how-tos/webhooks#define_an_incoming_webhook
+
+Copy the webhook URL, add a new notification to your build plan in Bamboo, choose "Hangouts" as notification type and add the webhook URL there. More about notifications in Bamboo and how to add them to you build plan you can find here: https://confluence.atlassian.com/bamboo/configuring-notifications-for-a-plan-and-its-jobs-289276973.html
+
 It's as easy as that.
 
 ## Things to come
 
-* a better look using Hangouts Card Messages
+* A better look using Hangouts Card Messages
