@@ -9,7 +9,7 @@
     <artifactId>hangouts-notification</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <name>hangouts-notification</name>
+    <name>Hangouts Notification For Bamboo</name>
     <description>This is a new notification type for sending build notifications to a Google Hangouts chatroom.</description>
     <packaging>atlassian-plugin</packaging>
 
