@@ -9,13 +9,8 @@
     <artifactId>hangouts-notification</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <organization>
-        <name>Example Company</name>
-        <url>http://www.example.com/</url>
-    </organization>
-
     <name>hangouts-notification</name>
-    <description>This is the org.lummerland.bamboo:hangouts-notification plugin for Atlassian Bamboo.</description>
+    <description>This is a new notification type for sending build notifications to a Google Hangouts chatroom.</description>
     <packaging>atlassian-plugin</packaging>
 
     <properties>
@@ -105,11 +100,6 @@
                     <!-- https://developer.atlassian.com/docs/advanced-topics/configuration-of-instructions-in-atlassian-plugins -->
                     <instructions>
                         <Atlassian-Plugin-Key>${atlassian.plugin.key}</Atlassian-Plugin-Key>
-
-                        <!-- Add package to export here -->
-                        <Export-Package>
-                            org.lummerland.bamboo.api,
-                        </Export-Package>
 
                         <!-- Add package import here -->
                         <Import-Package>
