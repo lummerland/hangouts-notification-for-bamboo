@@ -9,6 +9,6 @@ Copy the webhook URL, add a new notification to your build plan in Bamboo, choos
 
 ![Bamboo Notification in Hangouts Chat](src/main/resources/images/screenshot-1-0-0.png)
 
-## Things to come
+## Things to come / ideas
 
-* A better look using Hangouts Card Messages
+* Configure which elements should be displayed in the notification

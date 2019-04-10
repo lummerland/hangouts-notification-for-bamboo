@@ -53,11 +53,11 @@ public class HangoutsNotificationRecipient
 	public List<NotificationTransport> getTransports() {
 		final String config = getRecipientConfig();
 		log.debug("> config: {}", config);
-		return Collections.singletonList(HangoutsNotificationTransport.build(config, plan, summary));
+		return Collections.singletonList(HangoutsNotificationTransport.build(config, summary, templateRenderer));
 	}
 
 	@Override
-	public void populate(@NotNull Map<String, String[]> params) {
+	public void populate(@NotNull final Map<String, String[]> params) {
 		log.debug("> populated config: {}", params);
 		if (params.containsKey(WEBHOOK_URL)) {
 			this.webhookUrl = params.get(WEBHOOK_URL)[0];
@@ -67,7 +67,7 @@ public class HangoutsNotificationRecipient
 	@NotNull
 	@Override
 	public String getRecipientConfig() {
-		StringBuilder recipientConfig = new StringBuilder();
+		final StringBuilder recipientConfig = new StringBuilder();
 		if (StringUtils.isNotBlank(this.webhookUrl)) {
 			recipientConfig.append(this.webhookUrl);
 		}
@@ -76,7 +76,7 @@ public class HangoutsNotificationRecipient
 	}
 
 	@Override
-	public void init(@Nullable String configurationData) {
+	public void init(@Nullable final String configurationData) {
 		log.debug("> got configuration on init: {}", configurationData);
 		if (StringUtils.isNotBlank(configurationData)) {
 			this.webhookUrl = configurationData;
@@ -85,18 +85,18 @@ public class HangoutsNotificationRecipient
 
 	@Override
 	public String getEditHtml() {
-		String editTemplateLocation = ((NotificationRecipientModuleDescriptor)this.getModuleDescriptor()).getEditTemplate();
+		final String editTemplateLocation = ((NotificationRecipientModuleDescriptor)this.getModuleDescriptor()).getEditTemplate();
 		return this.templateRenderer.render(editTemplateLocation, populateContext());
 	}
 
 	@Override
 	public String getViewHtml() {
-		String viewTemplateLocation = ((NotificationRecipientModuleDescriptor)this.getModuleDescriptor()).getViewTemplate();
+		final String viewTemplateLocation = ((NotificationRecipientModuleDescriptor)this.getModuleDescriptor()).getViewTemplate();
 		return this.templateRenderer.render(viewTemplateLocation, populateContext());
 	}
 
 	private Map<String, Object> populateContext() {
-		Map<String, Object> context = Maps.newHashMap();
+		final Map<String, Object> context = Maps.newHashMap();
 		if (this.webhookUrl != null) {
 			context.put(WEBHOOK_URL, this.webhookUrl);
 		}
