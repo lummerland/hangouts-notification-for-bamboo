@@ -89,7 +89,7 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 			return String.format(COLORED_STRING, "#00aa00", "&#10004; " + buildState.toString());
 		}
 		if (buildState == BuildState.FAILED) {
-			return String.format(COLORED_STRING, "#aa0000", "&#10060; " + buildState.toString());
+			return String.format(COLORED_STRING, "#aa0000", "&#10008; " + buildState.toString());
 		}
 		return buildState.toString();
 	}
