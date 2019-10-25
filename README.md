@@ -7,8 +7,8 @@ https://developers.google.com/hangouts/chat/how-tos/webhooks#define_an_incoming_
 
 Copy the webhook URL, add a new notification to your build plan in Bamboo, choose "Hangouts" as notification type and add the webhook URL there. More about notifications in Bamboo and how to add them to you build plan you can find here: https://confluence.atlassian.com/bamboo/configuring-notifications-for-a-plan-and-its-jobs-289276973.html
 
-![Bamboo Notification in Hangouts Chat](src/main/resources/images/screenshot-1-0-0.png)
+![Bamboo Notification in Hangouts Chat](src/main/resources/images/screenshot-1-1-0.png)
 
-## Things to come
+## Things to come / ideas
 
-* A better look using Hangouts Card Messages
+* Configure which elements should be displayed in the notification
