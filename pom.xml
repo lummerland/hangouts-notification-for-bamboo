@@ -14,8 +14,8 @@
     <packaging>atlassian-plugin</packaging>
 
     <properties>
-        <bamboo.version>6.6.0</bamboo.version>
-        <bamboo.data.version>6.6.0</bamboo.data.version>
+        <bamboo.version>7.1.1</bamboo.version>
+        <bamboo.data.version>7.1.1</bamboo.data.version>
         <amps.version>6.3.21</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
@@ -92,9 +92,10 @@
                 <configuration>
                     <productVersion>${bamboo.version}</productVersion>
                     <productDataVersion>${bamboo.data.version}</productDataVersion>
+                    <allowGoogleTracking>false</allowGoogleTracking>
                     <enableQuickReload>true</enableQuickReload>
                     <enableFastdev>false</enableFastdev>
-                    <productDataPath>${project.basedir}/src/test/resources/generated-test-resources.zip</productDataPath>
+                    <productDataPath></productDataPath>
 
                     <!-- See here for an explanation of default instructions: -->
                     <!-- https://developer.atlassian.com/docs/advanced-topics/configuration-of-instructions-in-atlassian-plugins -->
