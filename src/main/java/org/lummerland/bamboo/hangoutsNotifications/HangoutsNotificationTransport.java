@@ -53,7 +53,7 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 	@Override
 	public void sendNotification(@NotNull final Notification notification) {
 		try (final CloseableHttpClient client = HttpClients.createDefault()) {
-			final HttpPost post = new HttpPost(webhookUrl);
+			final HttpPost post = new HttpPost(webhookUrl + "&threadKey=" + resultsSummary.getPlanKey());
 			final StringEntity requestEntity = new StringEntity(getMessageJson(), ContentType.APPLICATION_JSON);
 			post.setEntity(requestEntity);
 			log.debug("> send request");
