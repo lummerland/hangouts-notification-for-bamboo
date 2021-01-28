@@ -12,8 +12,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.chains.branches.BranchStatusService;
@@ -24,43 +22,45 @@ import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.template.TemplateRenderer;
 import com.google.common.collect.Maps;
 
-public class HangoutsNotificationTransport implements NotificationTransport {
+import lombok.extern.slf4j.Slf4j;
 
-	private static final Logger log = LoggerFactory.getLogger(HangoutsNotificationTransport.class);
+@Slf4j
+public class HangoutsNotificationTransport implements NotificationTransport {
 
 	private static final String COLORED_STRING = "<font color='%s'>%s</font>";
 	private static final String FREEMARKER_TEMPLATE = "/templates/hangoutsNotification.ftl";
 
-	private final String webhookUrl;
+	private final ConfigDto config;
 	private final ResultsSummary resultsSummary;
 	private final TemplateRenderer templateRenderer;
 	private final BranchStatusService branchStatusService;
 
 	private HangoutsNotificationTransport(
-			final String webhookUrl,
+			final ConfigDto config,
 			final ResultsSummary summary,
 			final TemplateRenderer templateRenderer,
 			final BranchStatusService branchStatusService
 	) {
-		this.webhookUrl = webhookUrl;
+		this.config = config;
 		this.resultsSummary = summary;
 		this.templateRenderer = templateRenderer;
 		this.branchStatusService = branchStatusService;
+		log.debug(">>> created notification transport with config {}", config);
 	}
 
 	static HangoutsNotificationTransport build(
-			final String webhookUrl,
+			final ConfigDto config,
 			final ResultsSummary summary,
 			final TemplateRenderer templateRenderer,
 			final BranchStatusService branchStatusService
 	) {
-		return new HangoutsNotificationTransport(webhookUrl, summary, templateRenderer, branchStatusService);
+		return new HangoutsNotificationTransport(config, summary, templateRenderer, branchStatusService);
 	}
 
 	@Override
 	public void sendNotification(@NotNull final Notification notification) {
 		try (final CloseableHttpClient client = HttpClients.createDefault()) {
-			final HttpPost post = new HttpPost(webhookUrl + "&threadKey=" + new ChatThreadKey(resultsSummary).get());
+			final HttpPost post = new HttpPost(config.getUrl() + "&threadKey=" + new ChatThreadKey(resultsSummary).get());
 			final StringEntity requestEntity = new StringEntity(getMessageJson(), ContentType.APPLICATION_JSON);
 			post.setEntity(requestEntity);
 			log.debug("> send request");
@@ -81,9 +81,15 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 		context.put("planKey", resultsSummary.getPlanKey().toString());
 		context.put("buildNumber", resultsSummary.getBuildNumber());
 		context.put("buildState", getBuildState(resultsSummary));
-		context.put("buildDuration", resultsSummary.getDurationDescription());
-		context.put("reason", replaceQuotes(resultsSummary.getReasonSummary()));
-		context.put("tests", replaceQuotes(resultsSummary.getTestSummary()));
+		if (config.isShowR()) {
+			context.put("reason", replaceQuotes(resultsSummary.getReasonSummary()));
+		}
+		if (config.isShowTS()) {
+			context.put("tests", replaceQuotes(resultsSummary.getTestSummary()));
+		}
+		if (config.isShowBD()) {
+			context.put("buildDuration", resultsSummary.getDurationDescription());
+		}
 
 		// TODO: Debug or log everything to see what data is available
 
@@ -95,11 +101,17 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 		log.debug(">>> BRANCH STATUS LINK INFO: {}", branchStatusService.getBranchStatusLinkInfo(plan,null));
 		log.debug(">>> Show link? {}", branchStatusService.getBranchStatusLinkInfo(plan,null).isShowLink());*/
 
-		if (isNotBlank(resultsSummary.getChangesListSummary())) {
+		if (config.isShowC() && isNotBlank(resultsSummary.getChangesListSummary())) {
 			context.put("changes", replaceQuotes(resultsSummary.getChangesListSummary()));
 		}
 
-		return templateRenderer.render(FREEMARKER_TEMPLATE, context);
+		if (config.isAtAll() && resultsSummary.getBuildState() == BuildState.FAILED) {
+			context.put("mentionAllUsers", "mentionAllUsers");
+		}
+
+		final String rendered = templateRenderer.render(FREEMARKER_TEMPLATE, context);
+		log.debug(">>>Rendered template:\n {}", rendered);
+		return rendered;
 	}
 
 	private String getBuildState(final ResultsSummary resultsSummary) {
