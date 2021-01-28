@@ -95,7 +95,7 @@
                     <allowGoogleTracking>false</allowGoogleTracking>
                     <enableQuickReload>true</enableQuickReload>
                     <enableFastdev>false</enableFastdev>
-                    <productDataPath></productDataPath>
+                    <productDataPath>${project.basedir}/src/test/resources/generated-test-resources.zip</productDataPath>
 
                     <!-- See here for an explanation of default instructions: -->
                     <!-- https://developer.atlassian.com/docs/advanced-topics/configuration-of-instructions-in-atlassian-plugins -->
