@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.atlassian.bamboo.chains.branches.BranchStatusService;
 import com.atlassian.bamboo.deployments.notification.DeploymentResultAwareNotificationRecipient;
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.NotificationRecipient.RequiresPlan;
@@ -44,16 +45,23 @@ public class HangoutsNotificationRecipient
 	@ComponentImport
 	private TemplateRenderer templateRenderer;
 
+	@ComponentImport
+	private final BranchStatusService branchStatusService;
+
 	@Inject
-	public HangoutsNotificationRecipient(final TemplateRenderer templateRenderer) {
+	public HangoutsNotificationRecipient(
+			final TemplateRenderer templateRenderer,
+			final BranchStatusService branchStatusService
+	) {
 		this.templateRenderer = templateRenderer;
+		this.branchStatusService = branchStatusService;
 	}
 
 	@NotNull
 	public List<NotificationTransport> getTransports() {
 		final String config = getRecipientConfig();
 		log.debug("> config: {}", config);
-		return Collections.singletonList(HangoutsNotificationTransport.build(config, summary, templateRenderer));
+		return Collections.singletonList(HangoutsNotificationTransport.build(config, summary, templateRenderer, branchStatusService));
 	}
 
 	@Override

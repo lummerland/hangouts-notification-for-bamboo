@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atlassian.bamboo.builder.BuildState;
+import com.atlassian.bamboo.chains.branches.BranchStatusService;
 import com.atlassian.bamboo.notification.Notification;
 import com.atlassian.bamboo.notification.NotificationTransport;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
@@ -33,21 +34,27 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 	private final String webhookUrl;
 	private final ResultsSummary resultsSummary;
 	private final TemplateRenderer templateRenderer;
+	private final BranchStatusService branchStatusService;
 
 	private HangoutsNotificationTransport(
 			final String webhookUrl,
 			final ResultsSummary summary,
-			final TemplateRenderer templateRenderer) {
+			final TemplateRenderer templateRenderer,
+			final BranchStatusService branchStatusService
+	) {
 		this.webhookUrl = webhookUrl;
 		this.resultsSummary = summary;
 		this.templateRenderer = templateRenderer;
+		this.branchStatusService = branchStatusService;
 	}
 
 	static HangoutsNotificationTransport build(
 			final String webhookUrl,
 			final ResultsSummary summary,
-			final TemplateRenderer templateRenderer) {
-		return new HangoutsNotificationTransport(webhookUrl, summary, templateRenderer);
+			final TemplateRenderer templateRenderer,
+			final BranchStatusService branchStatusService
+	) {
+		return new HangoutsNotificationTransport(webhookUrl, summary, templateRenderer, branchStatusService);
 	}
 
 	@Override
@@ -77,9 +84,21 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 		context.put("buildDuration", resultsSummary.getDurationDescription());
 		context.put("reason", replaceQuotes(resultsSummary.getReasonSummary()));
 		context.put("tests", replaceQuotes(resultsSummary.getTestSummary()));
+
+		// TODO: Debug or log everything to see what data is available
+
+		//if (branchStatusService.shouldDisplayBranchStatusLink(plan)) {
+			//context.put("branchStatusLink", branchStatusService.getBranchStatusLinkInfo(plan, null).getPath());
+		//}
+		//log.debug(">>> BRANCH STATUS: {}", branchStatusService.getBranchStatusLinkInfo(plan,null).getPath());
+		/*log.debug(">>> DISPLAY BRANCH STATUS LINK? {}", branchStatusService.shouldDisplayBranchStatusLink(plan));
+		log.debug(">>> BRANCH STATUS LINK INFO: {}", branchStatusService.getBranchStatusLinkInfo(plan,null));
+		log.debug(">>> Show link? {}", branchStatusService.getBranchStatusLinkInfo(plan,null).isShowLink());*/
+
 		if (isNotBlank(resultsSummary.getChangesListSummary())) {
 			context.put("changes", replaceQuotes(resultsSummary.getChangesListSummary()));
 		}
+
 		return templateRenderer.render(FREEMARKER_TEMPLATE, context);
 	}
 

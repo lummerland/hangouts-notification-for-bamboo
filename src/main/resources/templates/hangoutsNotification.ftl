@@ -11,24 +11,25 @@
 						},
 						{
 							"textParagraph": {
-								"text": "${reason!}"
+								"text": "<b>Reason:</b> ${reason!}"
 							}
 						},
 						{
 							"textParagraph": {
-								"text": "${tests!}"
+								"text": "<b>Tests:</b> ${tests!}"
 							}
 						},
 <#if changes??>
 						{
-							"textParagraph": {
-								"text": "${changes}"
+							"keyValue": {
+								"topLabel": "Changes",
+								"content": "${changes}"
 							}
 						},
 </#if>
 						{
 							"textParagraph": {
-								"text": "Build duration: ${buildDuration}"
+								"text": "<b>Build duration:</b> ${buildDuration}"
 							}
 						},
 						{
