@@ -118,6 +118,7 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 		}
 
 		if (resultsSummary.getBuildState() == BuildState.SUCCESS) {
+			// TODO: This currently only works for Job notifications. We need to look into ChainResultsSummary...
 			final String[] artifacts = resultsSummary.getArtifactLinks().stream()
 					.map(ArtifactLink::getArtifact)
 					.map(this::getArtifactLinkHtml)
