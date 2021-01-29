@@ -71,7 +71,7 @@ public class HangoutsNotificationRecipient
 	@NotNull
 	public List<NotificationTransport> getTransports() {
 		return Collections.singletonList(
-				HangoutsNotificationTransport.build(config, summary, templateRenderer, branchStatusService)
+				HangoutsNotificationTransport.build(config, summary, templateRenderer, branchStatusService, deploymentResult)
 		);
 	}
 

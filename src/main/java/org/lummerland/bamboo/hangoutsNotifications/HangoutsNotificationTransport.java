@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.chains.branches.BranchStatusService;
+import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.Notification;
 import com.atlassian.bamboo.notification.NotificationTransport;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
@@ -29,22 +30,26 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 
 	private static final String COLORED_STRING = "<font color='%s'>%s</font>";
 	private static final String FREEMARKER_TEMPLATE = "/templates/hangoutsNotification.ftl";
+	private static final String DEPLOYMENT_TEMPLATE = "/templates/deploymentNotification.ftl";
 
 	private final ConfigDto config;
 	private final ResultsSummary resultsSummary;
 	private final TemplateRenderer templateRenderer;
 	private final BranchStatusService branchStatusService;
+	private final DeploymentResult deploymentResult;
 
 	private HangoutsNotificationTransport(
 			final ConfigDto config,
 			final ResultsSummary summary,
 			final TemplateRenderer templateRenderer,
-			final BranchStatusService branchStatusService
+			final BranchStatusService branchStatusService,
+			final DeploymentResult deploymentResult
 	) {
 		this.config = config;
 		this.resultsSummary = summary;
 		this.templateRenderer = templateRenderer;
 		this.branchStatusService = branchStatusService;
+		this.deploymentResult = deploymentResult;
 		log.debug(">>> created notification transport with config {}", config);
 	}
 
@@ -52,24 +57,56 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 			final ConfigDto config,
 			final ResultsSummary summary,
 			final TemplateRenderer templateRenderer,
-			final BranchStatusService branchStatusService
+			final BranchStatusService branchStatusService,
+			final DeploymentResult deploymentResult
 	) {
-		return new HangoutsNotificationTransport(config, summary, templateRenderer, branchStatusService);
+		return new HangoutsNotificationTransport(config, summary, templateRenderer, branchStatusService, deploymentResult);
 	}
 
 	@Override
 	public void sendNotification(@NotNull final Notification notification) {
+		log.debug(">> send notification to google chat");
 		try (final CloseableHttpClient client = HttpClients.createDefault()) {
-			final HttpPost post = new HttpPost(config.getUrl() + "&threadKey=" + new ChatThreadKey(resultsSummary).get());
-			final StringEntity requestEntity = new StringEntity(getMessageJson(), ContentType.APPLICATION_JSON);
+			final String threadKey = (resultsSummary != null)
+					? ChatThreadKey.forBuild(resultsSummary)
+					:	ChatThreadKey.forDeployment(deploymentResult);
+
+			final HttpPost post = new HttpPost(config.getUrl());
+
+			final String message = (resultsSummary != null)
+					? getMessageJson()
+					: getMessageForDeployment();
+
+			final StringEntity requestEntity = new StringEntity(message, ContentType.APPLICATION_JSON);
 			post.setEntity(requestEntity);
 			log.debug("> send request");
 			final CloseableHttpResponse response = client.execute(post);
 			log.debug("> got {} response: {}", response.getStatusLine().getStatusCode(), response);
 		}
-		catch (final IOException e) {
+		catch (final Exception e) {
 			log.error("> Error sending notification", e);
 		}
+	}
+
+	private String getMessageForDeployment() {
+		final Map<String, Object> context = Maps.newHashMap();
+		context.put("environment", deploymentResult.getEnvironment().getName());
+		context.put("deploymentVersionName", deploymentResult.getDeploymentVersionName());
+		context.put("state", getDeployState());
+		final String rendered = templateRenderer.render(DEPLOYMENT_TEMPLATE, context);
+		log.debug(">>>Rendered template:\n {}", rendered);
+		return rendered;
+	}
+
+	private String getDeployState() {
+		final BuildState buildState = deploymentResult.getDeploymentState();
+		if (buildState == BuildState.SUCCESS) {
+			return String.format(COLORED_STRING, "#00aa00", "&#10004; " + buildState.toString());
+		}
+		if (buildState == BuildState.FAILED) {
+			return String.format(COLORED_STRING, "#aa0000", "&#10008; " + buildState.toString());
+		}
+		return buildState.toString();
 	}
 
 	private String getMessageJson() {
