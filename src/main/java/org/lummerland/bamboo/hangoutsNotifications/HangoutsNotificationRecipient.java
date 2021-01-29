@@ -11,6 +11,7 @@ import javax.inject.Named;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.atlassian.bamboo.build.artifact.ArtifactLinkManager;
 import com.atlassian.bamboo.chains.branches.BranchStatusService;
 import com.atlassian.bamboo.deployments.notification.DeploymentResultAwareNotificationRecipient;
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
@@ -55,23 +56,23 @@ public class HangoutsNotificationRecipient
 	private DeploymentResult deploymentResult;
 
 	@ComponentImport
-	private TemplateRenderer templateRenderer;
+	private final TemplateRenderer templateRenderer;
 	@ComponentImport
-	private final BranchStatusService branchStatusService;
+	private final ArtifactLinkManager artifactLinkManager;
 
 	@Inject
 	public HangoutsNotificationRecipient(
 			final TemplateRenderer templateRenderer,
-			final BranchStatusService branchStatusService
+			final ArtifactLinkManager artifactLinkManager
 	) {
 		this.templateRenderer = templateRenderer;
-		this.branchStatusService = branchStatusService;
+		this.artifactLinkManager = artifactLinkManager;
 	}
 
 	@NotNull
 	public List<NotificationTransport> getTransports() {
 		return Collections.singletonList(
-				HangoutsNotificationTransport.build(config, summary, templateRenderer, branchStatusService)
+				HangoutsNotificationTransport.build(config, summary, templateRenderer, artifactLinkManager)
 		);
 	}
 

@@ -15,22 +15,21 @@
 <#if reason??>
 						{
 							"textParagraph": {
-								"text": "<b>Reason:</b> ${reason!}"
+								"text": "<b>Reason:</b> ${reason}"
 							}
 						},
 </#if>
 <#if tests??>
 						{
 							"textParagraph": {
-								"text": "<b>Tests:</b> ${tests!}"
+								"text": "<b>Tests:</b> ${tests}"
 							}
 						},
 </#if>
 <#if changes??>
 						{
-							"keyValue": {
-								"topLabel": "Changes",
-								"content": "${changes}"
+							"textParagraph": {
+								"text": "<b>Changes:</b><br>${changes}"
 							}
 						},
 </#if>
@@ -38,6 +37,13 @@
 						{
 							"textParagraph": {
 								"text": "<b>Build duration:</b> ${buildDuration}"
+							}
+						},
+</#if>
+<#if artifacts??>
+						{
+							"textParagraph": {
+								"text": "<b>Artifacts:</b><br><#list artifacts as link>${link}<br></#list>"
 							}
 						},
 </#if>
