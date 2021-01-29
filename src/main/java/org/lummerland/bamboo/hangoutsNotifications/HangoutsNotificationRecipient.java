@@ -1,9 +1,12 @@
 package org.lummerland.bamboo.hangoutsNotifications;
 
-import java.lang.reflect.Type;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -12,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.atlassian.bamboo.build.artifact.ArtifactLinkManager;
-import com.atlassian.bamboo.chains.branches.BranchStatusService;
 import com.atlassian.bamboo.deployments.notification.DeploymentResultAwareNotificationRecipient;
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.NotificationRecipient.RequiresPlan;
@@ -26,9 +28,6 @@ import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.template.TemplateRenderer;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,10 +45,8 @@ public class HangoutsNotificationRecipient
 	private static final String PARAM_MENTION_ALL_ON_FAILED = "mentionAllOnFailed";
 	private static final String[] BOOLEAN_DEFAULT = new String[] { "false" };
 
-	private static final Gson GSON = new Gson();
-	private static final Type CONFIG_TYPE = new TypeToken<ConfigDto>() {}.getType();
-
 	private ConfigDto config = ConfigDto.builder().build();
+	private String configKey = null;
 
 	private ImmutablePlan plan;
 	private ResultsSummary summary;
@@ -59,14 +56,17 @@ public class HangoutsNotificationRecipient
 	private final TemplateRenderer templateRenderer;
 	@ComponentImport
 	private final ArtifactLinkManager artifactLinkManager;
+	private final ConfigPersistence configPersistence;
 
 	@Inject
 	public HangoutsNotificationRecipient(
 			final TemplateRenderer templateRenderer,
-			final ArtifactLinkManager artifactLinkManager
+			final ArtifactLinkManager artifactLinkManager,
+			final ConfigPersistence configPersistence
 	) {
 		this.templateRenderer = templateRenderer;
 		this.artifactLinkManager = artifactLinkManager;
+		this.configPersistence = configPersistence;
 	}
 
 	@NotNull
@@ -80,14 +80,16 @@ public class HangoutsNotificationRecipient
 	public void populate(@NotNull final Map<String, String[]> params) {
 		log.debug("> received parameters: {}", params);
 		this.config = ConfigDto.builder()
-				.url(params.getOrDefault(PARAM_WEBHOOK_URL, new String[] { "" })[0])
-				.showR(Boolean.parseBoolean(params.getOrDefault(PARAM_SHOW_REASON, BOOLEAN_DEFAULT)[0]))
-				.showTS(Boolean.parseBoolean(params.getOrDefault(PARAM_SHOW_TESTS_SUMMARY, BOOLEAN_DEFAULT)[0]))
-				.showC(Boolean.parseBoolean(params.getOrDefault(PARAM_SHOW_CHANGES, BOOLEAN_DEFAULT)[0]))
-				.showBD(Boolean.parseBoolean(params.getOrDefault(PARAM_SHOW_BUILD_DURATION, BOOLEAN_DEFAULT)[0]))
-				.atAll(Boolean.parseBoolean(params.getOrDefault(PARAM_MENTION_ALL_ON_FAILED, BOOLEAN_DEFAULT)[0]))
+				.webhookUrl(params.getOrDefault(PARAM_WEBHOOK_URL, new String[] { "" })[0])
+				.showNotificationReason(Boolean.parseBoolean(params.getOrDefault(PARAM_SHOW_REASON, BOOLEAN_DEFAULT)[0]))
+				.showTestsSummary(Boolean.parseBoolean(params.getOrDefault(PARAM_SHOW_TESTS_SUMMARY, BOOLEAN_DEFAULT)[0]))
+				.showChanges(Boolean.parseBoolean(params.getOrDefault(PARAM_SHOW_CHANGES, BOOLEAN_DEFAULT)[0]))
+				.showBuildDuration(Boolean.parseBoolean(params.getOrDefault(PARAM_SHOW_BUILD_DURATION, BOOLEAN_DEFAULT)[0]))
+				.mentionAllOnFailed(Boolean.parseBoolean(params.getOrDefault(PARAM_MENTION_ALL_ON_FAILED, BOOLEAN_DEFAULT)[0]))
 				.build();
 		log.debug("> populated config: {}", config);
+		configPersistence.save(getRecipientConfig(), config);
+		log.debug("> saved config {} under key {}", config, configKey);
 	}
 
 	@NotNull
@@ -95,29 +97,49 @@ public class HangoutsNotificationRecipient
 	public String getRecipientConfig() {
 		// serialize config into a string that will be persisted
 		// Attention: the max. length of this string is 255 chars because of database constraints.
-		// TODO: Only persist a key here and load the real config from elsewhere?
-		final String serializedConfig = GSON.toJson(config);
-		log.debug("> serialized config: {}", serializedConfig);
-		return serializedConfig;
+		// so we save the config ourselves and only persist a key here.
+
+		if (isBlank(configKey)) {
+			configKey = createConfigKey();
+			log.debug("> created config key {}", configKey);
+		}
+		return configKey;
 	}
 
 	@Override
-	public void init(@Nullable final String serializedConfig) {
-		// deserialize persisted config
-		log.debug("> got serialized configuration on init: {}", serializedConfig);
-		try {
-			config = GSON.fromJson(serializedConfig, CONFIG_TYPE);
-		} catch (final JsonSyntaxException e) {
-			log.debug("Found legacy config that only has webhook URL");
+	public void init(@Nullable final String persistedConfigKey) {
+		if (isNotBlank(persistedConfigKey)) {
+			configKey = persistedConfigKey;
+			config = configPersistence.load(configKey);
+			log.debug("> loaded config {} for key {}", config, configKey);
+			if (config == null) {
+				log.debug("> found legacy config that only contains a webhook URL");
+				configKey = createConfigKey();
+				config = ConfigDto.builder()
+						.webhookUrl(persistedConfigKey)
+						.showNotificationReason(true)
+						.showTestsSummary(true)
+						.showChanges(true)
+						.showBuildDuration(true)
+						.mentionAllOnFailed(false)
+						.build();
+			}
+		} else {
+			configKey = createConfigKey();
+			log.debug("> creating default config using key {}", configKey);
 			config = ConfigDto.builder()
-					.url(serializedConfig)
-					.showR(true)
-					.showTS(true)
-					.showC(true)
-					.showBD(true)
-					.atAll(false)
+					.webhookUrl("")
+					.showNotificationReason(true)
+					.showTestsSummary(true)
+					.showChanges(true)
+					.showBuildDuration(true)
+					.mentionAllOnFailed(false)
 					.build();
 		}
+	}
+
+	private String createConfigKey() {
+		return UUID.randomUUID().toString();
 	}
 
 	@Override
@@ -134,12 +156,12 @@ public class HangoutsNotificationRecipient
 
 	private Map<String, Object> populateContext() {
 		final Map<String, Object> context = Maps.newHashMap();
-		context.put(PARAM_WEBHOOK_URL, this.config.getUrl());
-		context.put(PARAM_SHOW_REASON, this.config.isShowR());
-		context.put(PARAM_SHOW_TESTS_SUMMARY, this.config.isShowTS());
-		context.put(PARAM_SHOW_CHANGES, this.config.isShowC());
-		context.put(PARAM_SHOW_BUILD_DURATION, this.config.isShowBD());
-		context.put(PARAM_MENTION_ALL_ON_FAILED, this.config.isAtAll());
+		context.put(PARAM_WEBHOOK_URL, this.config.getWebhookUrl());
+		context.put(PARAM_SHOW_REASON, this.config.isShowNotificationReason());
+		context.put(PARAM_SHOW_TESTS_SUMMARY, this.config.isShowTestsSummary());
+		context.put(PARAM_SHOW_CHANGES, this.config.isShowChanges());
+		context.put(PARAM_SHOW_BUILD_DURATION, this.config.isShowBuildDuration());
+		context.put(PARAM_MENTION_ALL_ON_FAILED, this.config.isMentionAllOnFailed());
 		log.debug("> populateContext = " + context.toString());
 		return context;
 	}

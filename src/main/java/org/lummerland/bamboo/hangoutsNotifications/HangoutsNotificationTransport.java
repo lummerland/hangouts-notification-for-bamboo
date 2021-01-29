@@ -75,7 +75,7 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 	@Override
 	public void sendNotification(@NotNull final Notification notification) {
 		try (final CloseableHttpClient client = HttpClients.createDefault()) {
-			final HttpPost post = new HttpPost(config.getUrl() + "&threadKey=" + new ChatThreadKey(resultsSummary).get());
+			final HttpPost post = new HttpPost(config.getWebhookUrl() + "&threadKey=" + new ChatThreadKey(resultsSummary).get());
 			final StringEntity requestEntity = new StringEntity(getMessageJson(), ContentType.APPLICATION_JSON);
 			post.setEntity(requestEntity);
 			log.debug("> send request");
@@ -97,24 +97,23 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 		context.put("planKey", resultsSummary.getPlanKey().toString());
 		context.put("buildNumber", resultsSummary.getBuildNumber());
 		context.put("buildState", getBuildState(resultsSummary));
-		if (config.isShowR()) {
+		if (config.isShowNotificationReason()) {
 			context.put("reason", replaceQuotes(resultsSummary.getReasonSummary()));
 		}
-		if (config.isShowTS()) {
+		if (config.isShowTestsSummary()) {
 			context.put("tests", replaceQuotes(resultsSummary.getTestSummary()));
 		}
-		if (config.isShowBD()) {
+		if (config.isShowBuildDuration()) {
 			context.put("buildDuration", resultsSummary.getDurationDescription());
 		}
 
 		// TODO: Debug or log everything to see what data is available
 
-
-		if (config.isShowC() && isNotBlank(resultsSummary.getChangesListSummary())) {
+		if (config.isShowChanges() && isNotBlank(resultsSummary.getChangesListSummary())) {
 			context.put("changes", replaceQuotes(resultsSummary.getChangesListSummary()));
 		}
 
-		if (config.isAtAll() && resultsSummary.getBuildState() == BuildState.FAILED) {
+		if (config.isMentionAllOnFailed() && resultsSummary.getBuildState() == BuildState.FAILED) {
 			context.put("mentionAllUsers", "mentionAllUsers");
 		}
 
@@ -131,7 +130,7 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 		}
 
 		final String rendered = templateRenderer.render(FREEMARKER_TEMPLATE, context);
-		//log.debug(">>> Rendered template:\n {}", rendered);
+		log.debug(">>> Rendered template:\n {}", rendered);
 		return rendered;
 	}
 
