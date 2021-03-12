@@ -14,8 +14,8 @@
 	<packaging>atlassian-plugin</packaging>
 
 	<properties>
-		<bamboo.version>7.1.1</bamboo.version>
-		<bamboo.data.version>7.1.1</bamboo.data.version>
+		<bamboo.version>7.2.1</bamboo.version>
+		<bamboo.data.version>7.2.1</bamboo.data.version>
 		<amps.version>6.3.21</amps.version>
 		<plugin.testrunner.version>1.2.3</plugin.testrunner.version>
 		<atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>

@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HangoutsNotificationTransport implements NotificationTransport {
 
 	private static final String COLORED_STRING = "<font color='%s'>%s</font>";
-	private static final String FREEMARKER_TEMPLATE = "/templates/hangoutsNotification.ftl";
+	private static final String BUILD_TEMPLATE = "/templates/buildNotification.ftl";
 	private static final String DEPLOYMENT_TEMPLATE = "/templates/deploymentNotification.ftl";
 
 	private final ConfigDto config;
@@ -164,7 +164,7 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 			}
 		}
 
-		final String rendered = templateRenderer.render(FREEMARKER_TEMPLATE, context);
+		final String rendered = templateRenderer.render(BUILD_TEMPLATE, context);
 		log.debug(">>> Rendered template:\n {}", rendered);
 		return rendered;
 	}

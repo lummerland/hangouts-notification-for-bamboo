@@ -14,6 +14,7 @@
         <description>Google Chat / Hangouts</description>
         <resource type="freemarker" name="edit" location="/templates/editNotification.ftl"/>
         <resource type="freemarker" name="view" location="/templates/viewNotification.ftl"/>
+				<scope>chain</scope> <!-- since 7.2, only available in build plans -->
     </notificationRecipient>
 
 </atlassian-plugin>
