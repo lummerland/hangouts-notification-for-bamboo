@@ -1,4 +1,7 @@
 {
+<#if mentionAllUsers??>
+	 "text": "<users/all>: Please have a look at this build result.",
+</#if>
 	"cards": [
 		{
 			"sections": [
@@ -9,28 +12,41 @@
 								"text": "<!--${projectName} &gt; -->${planName} &gt; #${buildNumber}: <b>${buildState}</b>"
 							}
 						},
+<#if reason??>
 						{
 							"textParagraph": {
-								"text": "${reason!}"
-							}
-						},
-						{
-							"textParagraph": {
-								"text": "${tests!}"
-							}
-						},
-<#if changes??>
-						{
-							"textParagraph": {
-								"text": "${changes}"
+								"text": "<b>Reason:</b> ${reason}"
 							}
 						},
 </#if>
+<#if tests??>
 						{
 							"textParagraph": {
-								"text": "Build duration: ${buildDuration}"
+								"text": "<b>Tests:</b> ${tests}"
 							}
 						},
+</#if>
+<#if changes??>
+						{
+							"textParagraph": {
+								"text": "<b>Changes:</b><br>${changes}"
+							}
+						},
+</#if>
+<#if buildDuration??>
+						{
+							"textParagraph": {
+								"text": "<b>Build duration:</b> ${buildDuration}"
+							}
+						},
+</#if>
+<#if artifacts??>
+						{
+							"textParagraph": {
+								"text": "<b>Artifacts:</b><br><#list artifacts as link>${link}<br></#list>"
+							}
+						},
+</#if>
 						{
 							"buttons": [
 								{
