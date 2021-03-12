@@ -1,6 +1,2 @@
 [@ww.textfield labelKey="org.lummerland.bamboo.hangoutsNotifications.webhook-url" name="webhookUrl" value="${webhookUrl!}" required='true'/]
-[@ww.checkbox labelKey="org.lummerland.bamboo.hangoutsNotifications.show-reason" name="showReason" value="${showReason?c}" fieldValue="true"/]
-[@ww.checkbox labelKey="org.lummerland.bamboo.hangoutsNotifications.show-tests-summary" name="showTestsSummary" value="${showTestsSummary?c}" fieldValue="true"/]
-[@ww.checkbox labelKey="org.lummerland.bamboo.hangoutsNotifications.show-changes" name="showChanges" value="${showChanges?c}" fieldValue="true"/]
-[@ww.checkbox labelKey="org.lummerland.bamboo.hangoutsNotifications.show-build-duration" name="showBuildDuration" value="${showBuildDuration?c}" fieldValue="true"/]
 [@ww.checkbox labelKey="org.lummerland.bamboo.hangoutsNotifications.mention-all-on-failed" name="mentionAllOnFailed" value="${mentionAllOnFailed?c}" fieldValue="true"/]

@@ -79,6 +79,13 @@ public class HangoutsNotificationTransport implements NotificationTransport {
 
 	@Override
 	public void sendNotification(@NotNull final Notification notification) {
+
+		// break on deployment notifications
+		if(resultsSummary == null) {
+			log.info("Only build notifications are supported right now, deployment notifications may come.");
+			return;
+		}
+
 		try (final CloseableHttpClient client = HttpClients.createDefault()) {
 			final String threadKey = (resultsSummary != null)
 					? ChatThreadKey.forBuild(resultsSummary)
